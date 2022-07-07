@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+<script src="https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.js"></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.css" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300&display=swap" rel="stylesheet">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<style>
+	body { margin: 0; padding: 0; }
+	#map { position: absolute; top: 0; bottom: 0; width: 100%; }
+	.map-overlay {
+	font-family: 'Roboto Condensed', sans-serif;;
+	/*font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;*/
+	position: absolute;
+	width: 40%;
+	top: 0;
+	left: 0;
+	padding: 10px;
+	}
+
+	.map-overlay .map-overlay-inner {
+	background-color: #fff;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+	border-radius: 3px;
+	padding: 10px;
+	margin-bottom: 10px;
+	}
+
+	.map-overlay h2 {
+	line-height: 24px;
+	display: block;
+	margin: 0 0 10px;
+	}
+	.mapboxgl-popup {
+	max-width: 400px;
+	font: 12px/20px 'Montserrat Neue',sans-serif;
+	}
+	#slider{
+		width:90%;
+	}
+</style>
+</head>
+<body>
+<div id="map"></div>
+	<div class="map-overlay top">
+	<div class="map-overlay-inner" id="menu">
+
+	<input id="black" type="radio" name="rtoggle"  checked='checked' value="black">
+	<label for="black">Black</label>
+	<input id="white" type="radio" name="rtoggle" value="white" >
+	<label for="white">White</label>
+	<input id="asian" type="radio" name="rtoggle" value="asian">
+	<label for="asian">Asian</label>
+	<input id="other" type="radio" name="rtoggle" value="other">
+	<label for="other">Other</label>
+
+
+	</div>
+	<!-- <h2>Real-Time DoT Traffic Speeds</h2> -->
+	<!-- <p>Real-Time Average Traffic Speeds in the last hour from DoT's Traffic Management Center <a href='https://data.cityofnewyork.us/Transportation/DOT-Traffic-Speeds-NBE/i4gi-tjb9'>NYC's Open Data portal</a>, where the DoT has traffic sensors. Width of the lines correspond to average estimated speed of the traffic. Unit of speeds is miles per hour.<br> <br><a href="https://data.cityofnewyork.us/api/views/i4gi-tjb9/files/cc7f3b15-58b7-46e3-94e7-4c5753c3a8b8?download=true&filename=metadata_trafficspeeds.pdf">Data Dictionary</a> </p> -->
+	<!-- <h4></h4> -->
+	<!-- <button id='updateFeed' type="button">Update Feed</button> -->
+
+	</div>
+
+
+	</div>
+</div>
+
+<script>
+	// TO MAKE THE MAP APPEAR YOU MUST
+	// ADD YOUR ACCESS TOKEN FROM
+	// https://account.mapbox.com
+	mapboxgl.accessToken = 'pk.eyJ1IjoiaWFtd2Z4IiwiYSI6ImNqNGFnMnIyMzEwZzgycXJ1ODdqbG14eGMifQ.3AqBqXZlcbsbEhxddAPB-g';
+var map = new mapboxgl.Map({
+	container: 'map',
+	style: 'mapbox://styles/iamwfx/cjjx6bl926vgt2ss0l9dbpmxz',
+	zoom: 12,
+	center: [-73.968285, 40.785091]
+	});
+
+// const layerList = document.getElementById('menu');
+// const inputs = layerList.getElementsByTagName('input');
+//
+// for (const input of inputs) {
+// input.onclick = (layer) => {
+// const layerId = layer.target.id;
+// 	map.setStyle('mapbox://styles/mapbox/' + layerId);
+// };
+// }
+
+
+
+map.on('load', function () {
+
+	map.addSource('streets-race', {
+	type: 'vector',
+	url: 'mapbox://iamwfx.digegmta'
+	});
+
+	map.addSource('tract-race', {
+	type: 'vector',
+	url: 'mapbox://iamwfx.816wdj6j'
+	});
+	let hoveredStateId = null;
+
+
+
+	map.addLayer({
+	'id': 'tract-race-black',
+	'type': 'fill',
+	'source': 'tract-race',
+	'source-layer': 'nyc_metro_race_2016_census-71u0ei',
+	'paint': {
+		'fill-opacity':1,
+		'fill-color': [
+				'interpolate', ['linear'], ['get', 'census_2016_colored_perc'],
+				0,
+				'black',
+				1,
+				'red'
+			],
+			'fill-opacity': .9
+	}
+	});
+
+	map.addLayer({
+	'id': 'streets-race-black',
+	'type': 'line',
+	'source': 'streets-race',
+	'source-layer': 'nyc_race-8kbj0r',
+
+	'paint': {
+		'line-width': 	[
+					'interpolate', ['linear'], ['get', 'trips_black_perc'],
+					0,
+					1,
+					1,
+					8
+				],
+		'line-color': [
+				'interpolate', ['linear'], ['get', 'trips_black_perc'],
+				0,
+				'white',
+				1,
+				'blue'
+			],
+			'line-opacity': [
+					'interpolate', ['linear'], ['get', 'trips_black_perc'],
+					0,
+					0,
+					1,
+					1
+				]
+
+	}
+	});
+	map.addLayer({
+	'id': 'tract-race-white',
+	'type': 'fill',
+	'source': 'tract-race',
+	'source-layer': 'nyc_metro_race_2016_census-71u0ei',
+	'paint': {
+		'fill-opacity':1,
+		'fill-color': [
+				'interpolate', ['linear'], ['get', 'census_2016_white_perc'],
+				0,
+				'black',
+				1,
+				'green'
+			],
+			'fill-opacity': .9
+	},layout:{visibility:'none'}
+	});
+
+	map.addLayer({
+	'id': 'streets-race-white',
+	'type': 'line',
+	'source': 'streets-race',
+	'source-layer': 'nyc_race-8kbj0r',
+
+	'paint': {
+		'line-width': 	[
+					'interpolate', ['linear'], ['get', 'trips_white_perc'],
+					0,
+					1,
+					1,
+					8
+				],
+		'line-color': [
+				'interpolate', ['linear'], ['get', 'trips_white_perc'],
+				0,
+				'white',
+				1,
+				'purple'
+			],
+			'line-opacity': [
+					'interpolate', ['linear'], ['get', 'trips_white_perc'],
+					0,
+					.5,
+					1,
+					1
+				]
+
+	},
+	layout:{visibility:'none'}
+	});
+
+	map.addLayer({
+	'id': 'tract-race-asian',
+	'type': 'fill',
+	'source': 'tract-race',
+	'source-layer': 'nyc_metro_race_2016_census-71u0ei',
+	'paint': {
+		'fill-opacity':1,
+		'fill-color': [
+				'interpolate', ['linear'], ['get', 'census_2016_asian_perc'],
+				0,
+				'black',
+				1,
+				'blue'
+			],
+			'fill-opacity': .9
+	},layout:{visibility:'none'}
+	});
+	map.addLayer({
+	'id': 'streets-race-asian',
+	'type': 'line',
+	'source': 'streets-race',
+	'source-layer': 'nyc_race-8kbj0r',
+	'paint': {
+		'line-width': 	[
+					'interpolate', ['linear'], ['get', 'trips_asian_perc'],
+					0,
+					1,
+					1,
+					8
+				],
+		'line-color': [
+				'interpolate', ['linear'], ['get', 'trips_asian_perc'],
+				0,
+				'white',
+				1,
+				'green'
+			],
+			'line-opacity': [
+					'interpolate', ['linear'], ['get', 'trips_asian_perc'],
+					0,
+					.5,
+					1,
+					1
+				]
+
+	},
+	layout:{visibility:'none'}
+	});
+
+	map.addLayer({
+	'id': 'tract-race-other',
+	'type': 'fill',
+	'source': 'tract-race',
+	'source-layer': 'nyc_metro_race_2016_census-71u0ei',
+	'paint': {
+		'fill-opacity':1,
+		'fill-color': [
+				'interpolate', ['linear'], ['get', 'census_2016_other_perc'],
+				0,
+				'black',
+				1,
+				'blue'
+			],
+			'fill-opacity': .9
+	},layout:{visibility:'none'}
+	});
+	map.addLayer({
+	'id': 'streets-race-other',
+	'type': 'line',
+	'source': 'streets-race',
+	'source-layer': 'nyc_race-8kbj0r',
+	'paint': {
+		'line-width': 	[
+					'interpolate', ['linear'], ['get', 'trips_other_perc'],
+					0,
+					1,
+					1,
+					8
+				],
+		'line-color': [
+				'interpolate', ['linear'], ['get', 'trips_other_perc'],
+				0,
+				'white',
+				1,
+				'green'
+			],
+			'line-opacity': [
+					'interpolate', ['linear'], ['get', 'trips_other_perc'],
+					0,
+					.5,
+					1,
+					1
+				]
+
+	},
+	layout:{visibility:'none'}
+	});
+var hoverlayer = 'streets-race-black'
+document.getElementById('menu').addEventListener('change', (event) => {
+	  const race = event.target.value;
+		console.log(race);
+	  // update the map filter
+	  if (race === 'black') {
+			hoverlayer = 'streets-race-black';
+			map.setLayoutProperty('tract-race-black', 'visibility', 'visible');
+			// map.setLayoutProperty('streets-race-black','visibility','visible');
+			map.setPaintProperty('streets-race-black', 'line-opacity', [
+					'interpolate', ['linear'], ['get', 'trips_black_perc'],
+					0,
+					.5,
+					1,
+					1
+				]);
+
+			map.setLayoutProperty('tract-race-white', 'visibility', 'none');
+			map.setLayoutProperty('streets-race-white','visibility','none');
+
+			map.setLayoutProperty('tract-race-asian', 'visibility', 'none');
+			map.setLayoutProperty('streets-race-asian','visibility','none');
+
+			map.setLayoutProperty('tract-race-other', 'visibility', 'none');
+			map.setLayoutProperty('streets-race-other','visibility','none');
+		} else if (race === 'white') {
+			hoverlayer = 'streets-race-white';
+			map.setLayoutProperty('tract-race-black', 'visibility', 'none');
+			// map.setLayoutProperty('streets-race-black','visibility','none');
+			map.setPaintProperty('streets-race-black', 'line-opacity', 0);
+
+			map.setLayoutProperty('tract-race-white', 'visibility', 'visible');
+			map.setLayoutProperty('streets-race-white','visibility','visible');
+
+			map.setLayoutProperty('tract-race-asian', 'visibility', 'none');
+			map.setLayoutProperty('streets-race-asian','visibility','none');
+
+			map.setLayoutProperty('tract-race-other', 'visibility', 'none');
+			map.setLayoutProperty('streets-race-other','visibility','none');
+		} else if (race === 'asian') {
+			hoverlayer = 'streets-race-asian';
+			map.setLayoutProperty('tract-race-black', 'visibility', 'none');
+			// map.setLayoutProperty('streets-race-black','visibility','none');
+			map.setPaintProperty('streets-race-black', 'line-opacity', 0);
+
+			map.setLayoutProperty('tract-race-white', 'visibility', 'none');
+			map.setLayoutProperty('streets-race-white','visibility','none');
+
+			map.setLayoutProperty('tract-race-asian', 'visibility', 'visible');
+			map.setLayoutProperty('streets-race-asian','visibility','visible');
+
+			map.setLayoutProperty('tract-race-other', 'visibility', 'none');
+			map.setLayoutProperty('streets-race-other','visibility','none');
+		}
+
+		else if (race === 'other') {
+			hoverlayer = 'streets-race-other';
+			map.setLayoutProperty('tract-race-black', 'visibility', 'none');
+			// map.setLayoutProperty('streets-race-black','visibility','none');
+			map.setPaintProperty('streets-race-black', 'line-opacity', 0);
+
+			map.setLayoutProperty('tract-race-white', 'visibility', 'none');
+			map.setLayoutProperty('streets-race-white','visibility','none');
+
+			map.setLayoutProperty('tract-race-asian', 'visibility', 'none');
+			map.setLayoutProperty('streets-race-asian','visibility','none');
+
+			map.setLayoutProperty('tract-race-other', 'visibility', 'visible');
+			map.setLayoutProperty('streets-race-other','visibility','visible');
+		}
+	  //   filterDay = ['!=', ['string', ['get', 'Day']], 'placeholder'];
+	  // } else if (day === 'weekday') {
+	  //   filterDay = ['match', ['get', 'Day'], ['Sat', 'Sun'], false, true];
+	  // } else if (day === 'weekend') {
+	  //   filterDay = ['match', ['get', 'Day'], ['Sat', 'Sun'], true, false];
+	  // } else {
+	  //   console.log('error');
+	  // }
+	  // map.setFilter('collisions', ['all', filterDay]);
+	});
+console.log(hoverlayer);
+
+	// Create a popup, but don't add it to the map yet.
+	var popup = new mapboxgl.Popup({
+	closeButton: false,
+	closeOnClick: false
+	});
+
+	map.on('mouseenter', hoverlayer, function (e) {
+		console.log(hoverlayer);
+	// Change the cursor style as a UI indicator.
+		map.getCanvas().style.cursor = 'pointer';
+		const coordinates = e.lngLat;
+		const highlighted_color =  e.features[0].properties["line-color"];
+
+
+	// if (e.features.length > 0) {
+	// 	if (hoveredStateId !== null) {
+	// 		map.setFeatureState(
+	// 		{ source: 'streets-race-black', id: hoveredStateId },
+	// 		{ hover: false }
+	// 		);
+	// }
+	// hoveredStateId = e.features[0].id;
+	// map.setFeatureState(
+	// 	{ source: 'streets-race-black', id: hoveredStateId },
+	// 	{ hover: true }
+	// 	);
+		// 	}
+		var trips = e.features[0].properties.trips;
+		var trips_black_perc = e.features[0].properties.trips_black_perc;
+		var trips_white_perc = e.features[0].properties.trips_white_perc;
+		var trips_asian_perc = e.features[0].properties.trips_asian_perc;
+		var trips_NHOPI_perc = e.features[0].properties.trips_NHOPI_perc;
+		var trips_other_perc = e.features[0].properties.trips_other_perc;
+		var trips_twoplus_perc = e.features[0].properties.trips_twoplus_perc;
+
+		description =
+					  '<strong>' + "Trips: "+'</strong>'+trips*20 + '<br>' +
+					  '<strong>' + "% Black on Road Segment: "+'</strong>'+trips_black_perc.toFixed(2) + '<br>' +
+					  '<strong>' + "% White on Road Segment: "+'</strong>'+trips_white_perc.toFixed(2) + '<br>' +
+					  '<strong>' + "% Asian on Road Segment: "+'</strong>'+trips_asian_perc.toFixed(2) + '<br>' +
+					  '<strong>' + "% NHOPI on Road Segment:  "+'</strong>'+trips_NHOPI_perc.toFixed(2) + '<br>'+
+					  '<strong>' + "% Other on Road Segment:  "+'</strong>'+trips_other_perc.toFixed(2) + '<br>'+
+						'<strong>' + "% Two plus on Road Segment:  "+'</strong>'+trips_twoplus_perc.toFixed(2) + '<br>'
+		// Ensure that if the map is zoomed out such that multiple
+		// copies of the feature are visible, the popup appears
+		// over the copy being pointed to.
+		while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+		coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+		}
+
+		// Populate the popup and set its coordinates
+		// based on the feature found.
+		popup.setLngLat(coordinates).setHTML(description).addTo(map);
+	});
+
+	map.on('mouseleave', hoverlayer, function () {
+		map.getCanvas().style.cursor = '';
+		popup.remove();
+
+
+	});
+
+
+
+
+
+
+});
+</script>
+
+</body>
+
+	<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-91894646-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+</html>
