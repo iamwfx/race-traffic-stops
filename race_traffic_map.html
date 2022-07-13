@@ -98,8 +98,16 @@ map.on('load', function () {
 
 	map.addSource('streets-race', {
 	type: 'vector',
-	url: 'mapbox://iamwfx.digegmta'
+	url: 'mapbox://iamwfx.6fag1zs6'
 	});
+
+
+	map.addSource('stops-nyc', {
+	type: 'vector',
+	url: 'mapbox://iamwfx.4jjoco8h'
+	});
+// nyc_stop_frisk_2020-9u9fjb
+
 
 	map.addSource('tract-race', {
 	type: 'vector',
@@ -131,8 +139,7 @@ map.on('load', function () {
 	'id': 'streets-race-black',
 	'type': 'line',
 	'source': 'streets-race',
-	'source-layer': 'nyc_race-8kbj0r',
-
+	'source-layer': 'nyc_race-2-6cq5u3',
 	'paint': {
 		'line-width': 	[
 					'interpolate', ['linear'], ['get', 'trips_black_perc'],
@@ -180,7 +187,7 @@ map.on('load', function () {
 	'id': 'streets-race-white',
 	'type': 'line',
 	'source': 'streets-race',
-	'source-layer': 'nyc_race-8kbj0r',
+	'source-layer': 'nyc_race-2-6cq5u3',
 
 	'paint': {
 		'line-width': 	[
@@ -230,7 +237,7 @@ map.on('load', function () {
 	'id': 'streets-race-asian',
 	'type': 'line',
 	'source': 'streets-race',
-	'source-layer': 'nyc_race-8kbj0r',
+	'source-layer': 'nyc_race-2-6cq5u3',
 	'paint': {
 		'line-width': 	[
 					'interpolate', ['linear'], ['get', 'trips_asian_perc'],
@@ -279,7 +286,7 @@ map.on('load', function () {
 	'id': 'streets-race-other',
 	'type': 'line',
 	'source': 'streets-race',
-	'source-layer': 'nyc_race-8kbj0r',
+	'source-layer': 'nyc_race-2-6cq5u3',
 	'paint': {
 		'line-width': 	[
 					'interpolate', ['linear'], ['get', 'trips_other_perc'],
@@ -307,6 +314,27 @@ map.on('load', function () {
 	layout:{visibility:'none'}
 	});
 var hoverlayer = 'streets-race-black'
+
+
+map.addLayer({
+'id': 'stops-nyc',
+'type': 'circle',
+'source': 'stops-nyc',
+'source-layer': 'nyc_stop_frisk_2020-9u9fjb',
+'paint': {
+// make circles larger as the user zooms from z12 to z22
+'circle-radius': {
+'base': 1.25,
+'stops': [
+[1, 3],
+[30, 200]
+]
+},
+// https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-match
+'circle-color': 'yellow'
+}
+});
+
 document.getElementById('menu').addEventListener('change', (event) => {
 	  const race = event.target.value;
 		console.log(race);
